@@ -32,6 +32,28 @@ with mp_hands.Hands(
 
     if results.multi_hand_landmarks:
       for hand_landmarks in results.multi_hand_landmarks:
+        
+        index_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
+        thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]
+        
+        dx = index_tip.x - thumb_tip.x
+        dy = index_tip.y - thumb_tip.y
+        distance = math.sqrt(dx*dx + dy*dy)
+        
+        print(f"Distance between index tip and thumb tip: {distance:.3f}")
+        
+        if distance < 0.05:
+            cv2.putText(
+                        image,
+                        "Pinch gesture detected!",
+                        (50, 50),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        1.0,
+                        (255, 255, 255),
+                        2,
+                        cv2.LINE_AA
+                    )
+
         mp_drawing.draw_landmarks(
             image,
             hand_landmarks,
@@ -53,7 +75,9 @@ with mp_hands.Hands(
               (255, 0, 0), 1, 
               cv2.LINE_AA
           )
-    cv2.imshow('MediaPipe Hands', cv2.flip(image, 1))
+    
+    cv2.imshow('MediaPipe Hands', image)
+
     if cv2.waitKey(5) & 0xFF == 27:
       break
 cap.release()
