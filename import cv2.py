@@ -1,5 +1,6 @@
 import cv2
 import mediapipe as mp
+import math
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_hands = mp.solutions.hands
@@ -17,6 +18,8 @@ with mp_hands.Hands(
       # If loading a video, use 'break' instead of 'continue'.
       continue
 
+    h, w, c = image.shape
+
     # To improve performance, optionally mark the image as not writeable to
     # pass by reference.
     image.flags.writeable = False
@@ -26,6 +29,7 @@ with mp_hands.Hands(
     # Draw the hand annotations on the image.
     image.flags.writeable = True
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
     if results.multi_hand_landmarks:
       for hand_landmarks in results.multi_hand_landmarks:
         mp_drawing.draw_landmarks(
@@ -34,7 +38,21 @@ with mp_hands.Hands(
             mp_hands.HAND_CONNECTIONS,
             mp_drawing_styles.get_default_hand_landmarks_style(),
             mp_drawing_styles.get_default_hand_connections_style())
-    # Flip the image horizontally for a selfie-view display.
+        
+        for i, landmark in enumerate(hand_landmarks.landmark):
+          px = int(landmark.x * w)
+          py = int(landmark.y * h)
+
+          text = f"{i}:({landmark.x:.2f},{landmark.y:.2f},{landmark.z:.2f})"
+          cv2.putText(
+              image, 
+              text, 
+              (px, py - 10),
+              cv2.FONT_HERSHEY_SIMPLEX, 
+              0.4, 
+              (255, 0, 0), 1, 
+              cv2.LINE_AA
+          )
     cv2.imshow('MediaPipe Hands', cv2.flip(image, 1))
     if cv2.waitKey(5) & 0xFF == 27:
       break
